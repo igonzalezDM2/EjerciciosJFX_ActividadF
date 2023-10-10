@@ -12,7 +12,7 @@
 <?import javafx.scene.layout.GridPane?>
 <?import javafx.scene.layout.RowConstraints?>
 
-<BorderPane prefHeight="700.0" prefWidth="366.0" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="controller.ActividadBController">
+<BorderPane prefHeight="700.0" prefWidth="366.0" xmlns="http://javafx.com/javafx/20.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="controller.ActividadBController">
    <right>
       <GridPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="600.0" prefWidth="580.0" BorderPane.alignment="TOP_CENTER">
         <columnConstraints>
@@ -40,7 +40,7 @@
                   <Button fx:id="btnModificarPersona" mnemonicParsing="false" onAction="#modifcarPersona" text="Modifcar Persona" />
                   <Button fx:id="btnEliminarPersona" mnemonicParsing="false" onAction="#eliminarPersona" text="Eliminar Persona" />
                   <Button fx:id="btnImportar" mnemonicParsing="false" onAction="#importar" text="Importar" />
-                  <Button fx:id="btnExportar" mnemonicParsing="false" onAction="#exportar" text="Eliminar Persona" />
+                  <Button fx:id="btnExportar" mnemonicParsing="false" onAction="#exportar" text="Exportar" />
                </children>
                <GridPane.margin>
                   <Insets top="70.0" />

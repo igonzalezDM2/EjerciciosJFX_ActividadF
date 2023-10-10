@@ -1,5 +1,8 @@
 package controller;
 
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.net.URL;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -14,6 +17,7 @@ import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
+import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
@@ -24,6 +28,7 @@ import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.GridPane;
+import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import model.Persona;
 
@@ -186,7 +191,23 @@ public class ActividadBController implements Initializable {
 	
     @FXML
     void exportar(ActionEvent event) {
-    	//TODO
+    	StringBuilder sb = new StringBuilder("Nombre,Apellidos,Edad\n");
+    	Iterable<Persona> iterable = personas != null ? personas : tablaPersonas.getItems();
+    	iterable.forEach(per -> sb.append(String.format("%s,%s,%d\n", per.getNombre(), per.getApellidos(), per.getEdad())));
+    	
+    	FileChooser fc = new FileChooser();
+    	fc.setInitialDirectory(new File(System.getProperty("user.home")));
+    	
+    	File seleccion = fc.showSaveDialog(((Node)event.getSource()).getScene().getWindow());
+    	
+    	try (FileWriter fw = new FileWriter(seleccion)) {    		
+    		fw.write(sb.toString());
+    	} catch (IOException e) {
+    		Alert alert = new Alert(AlertType.ERROR, "No se pudo exportar", ButtonType.OK);
+    		alert.showAndWait();
+		} 
+    	
+    	
     }
 
     @FXML
