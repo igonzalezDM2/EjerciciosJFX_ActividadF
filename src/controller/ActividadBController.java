@@ -1,6 +1,8 @@
 package controller;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.net.URL;
@@ -78,21 +80,18 @@ public class ActividadBController implements Initializable {
 
     @FXML
     void buscar(KeyEvent event) {
-    	if (personas == null) {
-    		personas = new LinkedHashSet<Persona>();
-    	}
-    	personas.addAll(tablaPersonas.getItems());
+    	inicializarListaDePersonas();
     	
     	String texto = tfBusqueda.getText().toLowerCase();
     	if (texto != null && !texto.isBlank()) {    		
     		List<Persona> listaFiltrada = personas.stream().filter(pers -> pers.getNombre().toLowerCase().contains(texto)).toList();
-    		
     		tablaPersonas.setItems(FXCollections.observableArrayList(listaFiltrada));
     		tablaPersonas.refresh();
     	} else {
-    		tablaPersonas.setItems(FXCollections.observableArrayList(personas));
+    		mostrarTodasLasPersonas();
     	}
     }
+
 
     @FXML
     void agregarPersona(ActionEvent event) {
@@ -192,12 +191,18 @@ public class ActividadBController implements Initializable {
     @FXML
     void exportar(ActionEvent event) {
     	StringBuilder sb = new StringBuilder("Nombre,Apellidos,Edad\n");
-    	Iterable<Persona> iterable = personas != null ? personas : tablaPersonas.getItems();
+    	Iterable<Persona> iterable = tablaPersonas.getItems();
     	iterable.forEach(per -> sb.append(String.format("%s,%s,%d\n", per.getNombre(), per.getApellidos(), per.getEdad())));
     	
     	FileChooser fc = new FileChooser();
     	fc.setInitialDirectory(new File(System.getProperty("user.home")));
+    	fc.setInitialFileName("personas.csv");
     	
+        //FILTRO DE EXTENSIONES
+        FileChooser.ExtensionFilter extFilter = new FileChooser.ExtensionFilter("CSV files (*.csv)", "*.csv");
+        fc.getExtensionFilters().add(extFilter);
+    	
+    	//COGEMOS EL WINDOW DESDE LA PROPIA FUENTE DEL EVENTO
     	File seleccion = fc.showSaveDialog(((Node)event.getSource()).getScene().getWindow());
     	
     	try (FileWriter fw = new FileWriter(seleccion)) {    		
@@ -212,12 +217,57 @@ public class ActividadBController implements Initializable {
 
     @FXML
     void importar(ActionEvent event) {
-    	//TODO
+    	//CREAR EL FILECHOOSER
+    	FileChooser fc = new FileChooser();
+    	fc.setInitialDirectory(new File(System.getProperty("user.home")));
+    	
+        //FILTRO DE EXTENSIONES
+        FileChooser.ExtensionFilter extFilter = new FileChooser.ExtensionFilter("CSV files (*.csv)", "*.csv");
+        fc.getExtensionFilters().add(extFilter);
+        
+        //Window desde la fuente del evento
+        File archivo = fc.showOpenDialog(((Node)event.getSource()).getScene().getWindow());
+        
+        
+        try (BufferedReader br = new BufferedReader(new FileReader(archivo))) {
+        	inicializarListaDePersonas();
+        	//NOS SALTAMOS LA PRIMERA LÍNEA PUESTO QUE ES LA CABECERA
+        	String linea = br.readLine();
+        	while ((linea = br.readLine()) != null) {
+        		String[] valores = linea.split(",");
+        		if (valores.length == 3) {
+        			personas.add(new Persona(valores[0], valores[1], Integer.parseInt(valores[2])));
+        		} else {
+        			throw new IOException("FORMATO INCORRECTO");        			
+        		}
+        	}
+        	//AL RECORRER TODAS LAS TUPLAS -> REDIBUJAR LA LISTA CON TODOS LOS VALORES Y RESETEAR LA BÚSQUEDA
+        	mostrarTodasLasPersonas();
+        } catch (IOException | NumberFormatException e) {
+			e.printStackTrace();
+    		Alert alert = new Alert(AlertType.ERROR, "Hubo un problema al abrir el fichero", ButtonType.OK);
+    		alert.showAndWait();
+		}
+        
+    	
+    }
+    
+    private void mostrarTodasLasPersonas() {
+    	tfBusqueda.setText("");
+    	tablaPersonas.setItems(FXCollections.observableArrayList(personas));
+    	tablaPersonas.refresh();
     }
 	
 	@FunctionalInterface
 	static interface Callback {
 		void run(GridPane panel, AgregarPersonaController controller);
+	}
+
+	private void inicializarListaDePersonas() {
+		if (personas == null) {
+			personas = new LinkedHashSet<Persona>();
+		}
+		personas.addAll(tablaPersonas.getItems());
 	}
 	
 	private void sacarDialogo(Callback callback) {
@@ -232,7 +282,6 @@ public class ActividadBController implements Initializable {
 			if(callback != null) {				
 				callback.run(rootPersona, controller);
 			}
-			
 			
 			Scene scene = new Scene(rootPersona);
 			stage.setResizable(false);
